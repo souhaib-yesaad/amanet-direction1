@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+<meta name="data-architecture" content="local-first; IndexedDB; future API adapter">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#173f74">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icons/icon.svg">
+<title>Amanet de Direction — Système Intégré</title>
+<style>
+:root{
+  --sonelgaz-blue:#123b73;
+  --sonelgaz-blue-2:#1d4f8f;
+  --sonelgaz-orange:#e47c18;
+  --sonelgaz-orange-2:#f09a2f;
+  --panel:#eef0f4;
+  --mint:#e3f2ed;
+  --line:#d9dce2;
+  --text:#30343a;
+  --muted:#777d84;
+  --white:#fff;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f3f3f3;
+  color:var(--text);
+  overflow:hidden;
+}
+button,input,textarea,select{font:inherit}
+.app{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  background:#f7f7f7;
+}
+
+/* Header & Nav */
+.topbar{
+  height:74px;
+  background:#fff;
+  border-bottom:1px solid #d8d8d8;
+  display:flex;
+  align-items:flex-end;
+  padding:0 22px;
+}
+.brand-mini{
+  width:66px;height:48px;
+  display:flex;align-items:center;justify-content:center;
+  margin-right:20px;
+}
+.logo-mark{position:relative;width:38px;height:28px;}
+.logo-mark:before,.logo-mark:after{content:"";position:absolute;border-radius:50%;}
+.logo-mark:before{width:25px;height:25px;left:0;top:1px;background:#f3a31c;box-shadow:13px 0 0 #e77919;}
+.logo-mark:after{width:18px;height:18px;left:9px;top:6px;background:#fff;clip-path:polygon(0 20%,100% 0,72% 100%,40% 65%);}
+
+.mainnav{display:flex;align-items:stretch;height:100%;gap:5px;overflow-x:auto;}
+.mainnav button{
+  border:0;background:transparent;padding:0 17px;color:#4d5258;font-size:14px;
+  cursor:pointer;border-bottom:4px solid transparent;white-space:nowrap;
+}
+.mainnav button:hover,.mainnav button.active{
+  color:var(--sonelgaz-blue);border-bottom-color:var(--sonelgaz-orange);background:#fafafa;
+}
+
+.titlebar{
+  height:66px;background:linear-gradient(90deg,#173d72,#23538d);color:white;
+  display:flex;align-items:center;padding:0 30px;box-shadow:inset 0 -1px rgba(0,0,0,.15);
+}
+.titlebar .title{font-size:25px;font-weight:700;letter-spacing:.2px;}
+.titlebar .accent{color:#ef821b;margin-left:9px;}
+.titlebar .subtitle{margin-left:auto;opacity:.82;font-size:13px;}
+
+.section-strip{
+  height:42px;background:linear-gradient(90deg,#c96812,#e17b19);color:white;
+  display:flex;align-items:center;padding:0 18px;font-size:15px;font-weight:700;
+}
+.section-strip .arrow{margin-right:9px;font-size:12px}
+
+/* Workspace & Sidebar */
+.workspace{flex:1;min-height:0;display:grid;grid-template-columns:300px 1fr;}
+.sidebar{background:#fafafa;border-right:1px solid #d5d5d5;overflow-y:auto;}
+.menu-title{background:#c96712;color:#fff;padding:12px 15px;font-weight:700;font-size:16px;display:flex;justify-content:space-between;}
+.group-title{background:#e17c19;color:white;padding:10px 14px;font-weight:700;font-size:15px;border-bottom:1px solid rgba(0,0,0,.08);}
+.menu-item{
+  width:100%;border:0;background:#fff;text-align:left;padding:12px 16px 12px 27px;
+  color:#464a50;cursor:pointer;border-bottom:1px solid #ececec;font-size:14px;
+}
+.menu-item:before{content:"›"; color:#d97918; font-weight:bold; margin-right:10px}
+.menu-item:hover,.menu-item.active{background:#f4f5f7;color:var(--sonelgaz-blue);padding-left:31px;}
+
+.content{overflow:auto;background:#fff;}
+.actions{padding:20px;display:flex;gap:10px;}
+.btn{border:1px solid #d0d0d0;background:#f5f5f5;color:#555;padding:10px 22px;border-radius:4px;cursor:pointer;font-weight:600;}
+.btn.primary{background:var(--sonelgaz-orange);color:white;border-color:#cc6910;}
+.btn:hover{filter:brightness(.97)}
+.footer{height:38px;background:#c96712;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;}
+
+/* Language Toggle */
+.language-box{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#f5f5f5;border-bottom:1px solid #dedede;}
+.language-label{font-size:13px;color:#555b61;font-weight:600;}
+.lang-toggle{display:flex;align-items:center;gap:2px;border:1px solid #cfd2d6;border-radius:18px;background:#fff;padding:3px;cursor:pointer;}
+.lang-option{min-width:32px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:14px;font-size:12px;font-weight:700;color:#777;}
+.lang-option.active{background:var(--sonelgaz-orange);color:#fff;}
+
+/* RTL Support */
+body[dir="rtl"] .sidebar{border-right:0;border-left:1px solid #d5d5d5}
+body[dir="rtl"] .menu-item{text-align:right;padding-left:16px;padding-right:27px}
+body[dir="rtl"] .menu-item:hover, body[dir="rtl"] .menu-item.active{padding-left:16px;padding-right:31px}
+body[dir="rtl"] .menu-item:before{margin-right:0;margin-left:10px}
+body[dir="rtl"] .titlebar .accent{margin-left:0;margin-right:9px}
+body[dir="rtl"] .titlebar .subtitle{margin-left:0;margin-right:auto}
+body[dir="rtl"] .language-box{direction:rtl}
+body[dir="rtl"] th, body[dir="rtl"] td { text-align: right; }
+
+/* Dashboard Home */
+.dashboard{padding:18px 20px 24px;background:#fff}
+.welcome{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(90deg,#edf5f2,#f8faf9);border:1px solid #d8e7e2;border-left:5px solid var(--sonelgaz-orange);padding:20px 22px;margin-bottom:18px;}
+body[dir="rtl"] .welcome{border-left:1px solid #d8e7e2;border-right:5px solid var(--sonelgaz-orange);}
+.welcome-kicker{font-size:11px;font-weight:700;color:#d06b13;letter-spacing:1px;margin-bottom:6px}
+.welcome h2{margin:0;color:var(--sonelgaz-blue);font-size:23px}
+.welcome p{margin:6px 0 0;color:#687078;font-size:13px}
+.today{text-align:right;color:#72777d;font-size:12px}
+body[dir="rtl"] .today{text-align:left;}
+.today strong{display:block;color:var(--sonelgaz-blue);font-size:16px;margin-top:5px}
+
+.dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:13px;}
+.dash-card{text-align:left;background:#fff;border:1px solid #d9dce0;border-top:4px solid var(--sonelgaz-orange);min-height:145px;padding:15px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;}
+body[dir="rtl"] .dash-card{text-align:right;}
+.dash-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08);border-top-color:var(--sonelgaz-blue)}
+.card-icon{width:35px;height:35px;border-radius:4px;background:#eef3f8;color:var(--sonelgaz-blue);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px;font-weight:bold;}
+.card-title{font-weight:700;color:#3e454c;font-size:14px}
+.card-desc{font-size:12px;color:#777d83;line-height:1.45;margin-top:6px}
+
+/* Generic Panels */
+.panel-section { padding: 18px 20px 24px; background: #fff; display:none; }
+.toolbar { display: flex; gap: 9px; flex-wrap: wrap; background: #f6f7f8; border: 1px solid #dfe1e4; padding: 12px; margin-bottom: 14px; align-items:center;}
+.add-form { display: grid; gap: 8px; background: #e3f2ed; border: 1px solid #d5e7e1; padding: 13px; margin-bottom: 14px; }
+table { width: 100%; border-collapse: collapse; min-width:800px; }
+.table-wrap { overflow-x:auto; border:1px solid #d8dadd; }
+th { background: #173f74; color: white; padding: 10px; font-size: 12px; text-align: left; white-space: nowrap; }
+td { border-bottom: 1px solid #e6e7e9; padding: 9px; font-size: 12px; color: #4b5056; vertical-align:middle; }
+tr:hover td { background:#f8fafb; }
+.empty-row { text-align:center !important; padding:30px !important; color:#888; }
+.badge { display:inline-block; padding:4px 8px; border-radius:3px; font-size:11px; font-weight:700; }
+.badge.high { background:#f7dfd1; color:#a34f13; }
+.badge.normal { background:#e7eef6; color:#315d87; }
+.action-btn { border:1px solid #d0d2d5; background:#fff; border-radius:3px; padding:5px 8px; cursor:pointer; color:#315d87; font-size:11px; }
+.action-btn:hover { background:#eef3f8; }
+
+input, select, textarea { border:1px solid #d4d7db; padding:8px 10px; outline:none; font-family:inherit; }
+input:focus, select:focus, textarea:focus { border-color:#4d83b8; box-shadow:0 0 0 2px rgba(77,131,184,.12); }
+
+/* --- NEW: Archive System (الأرشيف) --- */
+.archive-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:15px; margin-top:15px; }
+.archive-box {
+  background:#fff; border:1px solid #d1d5da; border-radius:6px; padding:15px; cursor:pointer;
+  transition:all 0.2s ease; position:relative; overflow:hidden;
+}
+.archive-box:hover { border-color:#173f74; box-shadow:0 5px 15px rgba(0,0,0,0.08); transform:translateY(-2px); }
+.archive-box::before { content:""; position:absolute; top:0; left:0; right:0; height:4px; background:#c96712; }
+.box-code { font-size:22px; font-weight:900; color:#173f74; margin-bottom:5px; display:flex; align-items:center; gap:8px;}
+.box-code span { background:#f0f4f8; padding:2px 6px; border-radius:4px; font-size:11px; color:#555; font-weight:normal; letter-spacing:1px;}
+.box-title { font-size:14px; font-weight:bold; color:#333; margin-bottom:8px; }
+.box-meta { font-size:12px; color:#777; display:flex; justify-content:space-between; }
+.box-meta b { color:#c96712; }
+.box-inside-header { display:flex; justify-content:space-between; align-items:center; background:#173f74; color:#fff; padding:15px; border-radius:4px; margin-bottom:15px; }
+.box-inside-header h3 { margin:0; font-size:18px; }
+.box-inside-header .btn { background:#fff; color:#173f74; border:none; padding:6px 15px; font-size:13px;}
+
+/* --- NEW: Advanced Smart Dashboard (اللوحة الذكية) --- */
+.smart-analytics-grid { display:grid; grid-template-columns:2fr 1fr; gap:20px; margin-top:15px; }
+.analytics-card { background:#fff; border:1px solid #e1e4e8; border-radius:6px; padding:20px; box-shadow:0 2px 4px rgba(0,0,0,0.02); }
+.analytics-title { font-size:16px; font-weight:bold; color:#173f74; margin-bottom:15px; display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid #f0f4f8; padding-bottom:10px; }
+.progress-group { margin-bottom:15px; }
+.progress-label { display:flex; justify-content:space-between; font-size:13px; color:#555; margin-bottom:5px; font-weight:bold;}
+.progress-bar { width:100%; height:10px; background:#e1e4e8; border-radius:5px; overflow:hidden; }
+.progress-fill { height:100%; transition:width 0.5s ease-in-out; }
+.fill-blue { background:#173f74; }
+.fill-orange { background:#e47c18; }
+.fill-green { background:#2ea44f; }
+.timeline { border-left:2px solid #e1e4e8; padding-left:15px; margin-left:10px; }
+body[dir="rtl"] .timeline { border-left:none; border-right:2px solid #e1e4e8; padding-left:0; padding-right:15px; margin-left:0; margin-right:10px; }
+.timeline-item { position:relative; padding-bottom:15px; }
+.timeline-item::before { content:""; position:absolute; left:-21px; top:2px; width:10px; height:10px; border-radius:50%; background:#173f74; border:2px solid #fff; }
+body[dir="rtl"] .timeline-item::before { left:auto; right:-21px; }
+.timeline-date { font-size:11px; color:#c96712; font-weight:bold; margin-bottom:3px; }
+.timeline-content { font-size:13px; color:#333; }
+.alert-box { background:#fff5e5; border-left:4px solid #e47c18; padding:12px; margin-bottom:10px; border-radius:0 4px 4px 0; }
+body[dir="rtl"] .alert-box { border-left:none; border-right:4px solid #e47c18; border-radius:4px 0 0 4px; }
+.alert-title { font-weight:bold; color:#9b5a1a; font-size:13px; margin-bottom:4px; }
+.alert-desc { font-size:12px; color:#555; }
+
+/* PWA install control */
+.install-app-btn{margin-left:auto;align-self:center;white-space:nowrap;border:0;border-radius:5px;background:#e47c18;color:#fff;padding:10px 15px;font-weight:700;cursor:pointer}
+.install-app-btn:hover{filter:brightness(.95)}
+body[dir="rtl"] .install-app-btn{margin-left:0;margin-right:auto}
+@media(max-width:760px){.topbar{padding:0 8px;align-items:center;height:auto;min-height:74px;flex-wrap:wrap}.mainnav{order:3;width:100%;height:48px}.install-app-btn{padding:8px 10px;font-size:12px}.titlebar{padding:0 12px}.titlebar .title{font-size:18px}.titlebar .subtitle{font-size:11px}}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="brand-mini"><div class="logo-mark"></div></div>
+    <nav class="mainnav">
+      <button class="active" data-view="home" data-fr="Accueil" data-ar="الرئيسية">Accueil</button>
+      <button data-view="journal" data-fr="Journal" data-ar="السجل">Journal</button>
+      <button data-view="tasks" data-fr="Tâches" data-ar="المهام">Tâches</button>
+      <button data-view="visitors" data-fr="Visiteurs" data-ar="الزوار">Visiteurs</button>
+      <button data-view="archive" data-fr="Archives" data-ar="الأرشيف">Archives</button>
+      <button data-view="smart" data-fr="Tableau Intelligent" data-ar="لوحة ذكية">Tableau Intelligent</button>
+    </nav>
+    <button id="installAppBtn" class="install-app-btn" type="button" data-fr="Installer l’application" data-ar="تثبيت التطبيق">Installer l’application</button>
+  </div>
+
+  <div class="titlebar">
+    <div class="title"><span data-fr="Amanet de Direction" data-ar="أمانة المديرية">Amanet de Direction</span> <span class="accent">EL HARROUCH</span></div>
+    <div class="subtitle" data-fr="Système Intégré de Gestion" data-ar="منظومة التسيير المتكاملة">Système Intégré de Gestion</div>
+  </div>
+
+  <div class="section-strip"><span class="arrow">▶</span><span id="sectionTitle">Tableau de bord</span></div>
+
+  <!-- WORKSPACE -->
+  <div class="workspace">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="menu-title" data-fr="Menu Principal" data-ar="القائمة الرئيسية">Menu Principal</div>
+      <div class="language-box">
+        <span class="language-label" data-fr="Langue" data-ar="لغة النظام">Langue</span>
+        <button id="langToggle" class="lang-toggle" type="button">
+          <span id="langFr" class="lang-option active">FR</span>
+          <span id="langAr" class="lang-option">ع</span>
+        </button>
+      </div>
+
+      <!-- Menus (Dynamic) -->
+      <div id="menu-home" class="submenu-group">
+        <div class="group-title" data-fr="Administration" data-ar="الإدارة العامة">Administration</div>
+        <button class="menu-item active" data-section="home" data-fr="Vue d'ensemble" data-ar="نظرة عامة">Vue d'ensemble</button>
+      </div>
+
+      <div id="menu-journal" class="submenu-group" style="display:none;">
+        <div class="group-title" data-fr="Journal" data-ar="السجل">Journal</div>
+        <button class="menu-item active" data-section="journal" data-fr="Activités du jour" data-ar="نشاطات اليوم">Activités du jour</button>
+      </div>
+
+      <div id="menu-tasks" class="submenu-group" style="display:none;">
+        <div class="group-title" data-fr="Tâches" data-ar="المهام">Tâches</div>
+        <button class="menu-item active" data-section="tasks" data-fr="Liste des tâches" data-ar="قائمة المهام">Liste des tâches</button>
+      </div>
+
+      <div id="menu-visitors" class="submenu-group" style="display:none;">
+        <div class="group-title" data-fr="Visiteurs" data-ar="الزوار">Visiteurs</div>
+        <button class="menu-item active" data-section="visitors" data-fr="Registre des visites" data-ar="سجل الزيارات">Registre des visites</button>
+      </div>
+
+      <div id="menu-archive" class="submenu-group" style="display:none;">
+        <div class="group-title" data-fr="Système d'Archivage" data-ar="نظام الأرشفة">Système d'Archivage</div>
+        <button class="menu-item active" data-section="archive" data-fr="Boîtes d'archives" data-ar="علب الأرشيف">Boîtes d'archives</button>
+        <button class="menu-item" onclick="createNewBox()" data-fr="Créer une boîte (Code)" data-ar="إنشاء علبة أرشيف (برمز)">Créer une boîte (Code)</button>
+      </div>
+
+      <div id="menu-smart" class="submenu-group" style="display:none;">
+        <div class="group-title" data-fr="Analyse Avancée" data-ar="التحليل المتقدم">Analyse Avancée</div>
+        <button class="menu-item active" data-section="smart" data-fr="Indicateurs & Alertes" data-ar="المؤشرات والتنبيهات">Indicateurs & Alertes</button>
+        <button class="menu-item" onclick="window.print()" data-fr="Imprimer le rapport" data-ar="طباعة التقرير">Imprimer le rapport</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+
+      <!-- HOME DASHBOARD -->
+      <section class="panel-section" id="homePanel" style="display:block;">
+        <div class="welcome">
+          <div>
+            <div class="welcome-kicker" data-fr="ESPACE AMANET DE DIRECTION" data-ar="فضاء أمانة المديرية">ESPACE AMANET DE DIRECTION</div>
+            <h2 data-fr="Tableau de bord" data-ar="لوحة القيادة">Tableau de bord</h2>
+            <p data-fr="Bienvenue dans le système intégré de gestion." data-ar="مرحباً بك في منظومة التسيير المتكاملة.">Bienvenue dans le système intégré de gestion.</p>
+          </div>
+          <div class="today">
+            <span data-fr="Aujourd'hui" data-ar="اليوم">Aujourd'hui</span>
+            <strong id="todayDate"></strong>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <button class="dash-card" data-section="archive">
+            <span class="card-icon" style="color:#c96712; background:#fceddf;">🗃️</span>
+            <span class="card-title" data-fr="Archives (Code-Barre)" data-ar="الأرشيف (نظام الرموز)">Archives (Code-Barre)</span>
+            <span class="card-desc" data-fr="Gérer les boîtes d'archives physiques et numériques avec codes uniques." data-ar="إدارة علب الأرشيف وتخزين الملفات برموز فريدة للبحث السريع.">Gérer les boîtes d'archives physiques et numériques avec codes uniques.</span>
+          </button>
+          <button class="dash-card" data-section="smart">
+            <span class="card-icon" style="color:#2ea44f; background:#e6f6eb;">📊</span>
+            <span class="card-title" data-fr="Tableau Intelligent" data-ar="اللوحة الذكية التحليلية">Tableau Intelligent</span>
+            <span class="card-desc" data-fr="Analyses, progression et alertes des tâches à venir." data-ar="تحليل البيانات، نسبة الإنجاز، والتنبيه التلقائي بالأعمال القادمة.">Analyses, progression et alertes des tâches à venir.</span>
+          </button>
+          <button class="dash-card" data-section="journal">
+            <span class="card-icon">▤</span>
+            <span class="card-title" data-fr="Journal quotidien" data-ar="السجل اليومي">Journal quotidien</span>
+            <span class="card-desc" data-fr="Enregistrer les activités." data-ar="تسجيل نشاطات وأحداث اليوم.">Enregistrer les activités.</span>
+          </button>
+          <button class="dash-card" data-section="tasks">
+            <span class="card-icon">✓</span>
+            <span class="card-title" data-fr="Tâches & échéances" data-ar="المهام والمواعيد">Tâches & échéances</span>
+            <span class="card-desc" data-fr="Suivi des travaux." data-ar="متابعة الأعمال وإنجازها.">Suivi des travaux.</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ARCHIVE SYSTEM PANEL (NEW) -->
+      <section class="panel-section" id="archivePanel">
+        <!-- View 1: Boxes Grid -->
+        <div id="archiveBoxesView">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="margin:0; color:#173f74;" data-fr="Boîtes d'archives" data-ar="قبو الأرشيف (العلب)">Boîtes d'archives</h3>
+            <button class="btn primary" onclick="createNewBox()" data-fr="+ Nouvelle Boîte" data-ar="+ إنشاء علبة جديدة">+ Nouvelle Boîte</button>
+          </div>
+          
+          <div class="toolbar">
+            <input type="text" id="searchArchiveInput" oninput="renderArchiveBoxes()" placeholder="Chercher code (ex: 4592) ou nom..." style="width:100%; max-width:400px; padding:10px; font-weight:bold;">
+          </div>
+
+          <div class="archive-grid" id="archiveGridContainer">
+            <!-- Boxes rendered via JS -->
+          </div>
+        </div>
+
+        <!-- View 2: Inside a Box -->
+        <div id="archiveInsideView" style="display:none;">
+          <div class="box-inside-header">
+            <div>
+              <h3 id="currentBoxCodeDisplay">#0000</h3>
+              <div id="currentBoxNameDisplay" style="font-size:13px; opacity:0.8; margin-top:5px;">Nom de la boîte</div>
+            </div>
+            <button class="btn" onclick="closeBoxView()" data-fr="← Retour aux boîtes" data-ar="← العودة للعلب">← Retour aux boîtes</button>
+          </div>
+
+          <div class="add-form" style="grid-template-columns: 2fr 1fr 2fr auto;">
+            <input type="text" id="fName" placeholder="Nom du fichier (ex: Décision 45)">
+            <input type="text" id="fRef" placeholder="Référence / N°">
+            <input type="text" id="fDesc" placeholder="Description / Type">
+            <button class="btn primary" onclick="addFileToBox()" data-fr="+ Ajouter Fichier" data-ar="+ إضافة ملف">+ Ajouter Fichier</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-fr="Nom du fichier" data-ar="اسم الملف">Nom du fichier</th>
+                  <th data-fr="Référence" data-ar="المرجع / الرقم">Référence</th>
+                  <th data-fr="Description" data-ar="الوصف">Description</th>
+                  <th data-fr="Date d'ajout" data-ar="تاريخ الإضافة">Date d'ajout</th>
+                  <th data-fr="Action" data-ar="إجراء">Action</th>
+                </tr>
+              </thead>
+              <tbody id="boxFilesBody">
+                <!-- Files rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ADVANCED SMART DASHBOARD (NEW) -->
+      <section class="panel-section" id="smartPanel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <h3 style="margin:0; color:#173f74;" data-fr="Tableau Intelligent & Analytique" data-ar="اللوحة الذكية والتحليل المتقدم">Tableau Intelligent & Analytique</h3>
+          <button class="btn" onclick="renderSmartDashboard()" data-fr="Actualiser" data-ar="تحديث البيانات">Actualiser</button>
+        </div>
+
+        <div class="smart-analytics-grid">
+          <!-- Left Col -->
+          <div>
+            <div class="analytics-card" style="margin-bottom:20px;">
+              <div class="analytics-title">
+                <span data-fr="Progression Globale" data-ar="نسب الإنجاز العامة">Progression Globale</span>
+                <span>📈</span>
+              </div>
+              
+              <div class="progress-group">
+                <div class="progress-label">
+                  <span data-fr="Tâches accomplies" data-ar="المهام المنجزة">Tâches accomplies</span>
+                  <span id="statTaskPerc">0%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill fill-blue" id="barTask" style="width:0%"></div></div>
+              </div>
+
+              <div class="progress-group">
+                <div class="progress-label">
+                  <span data-fr="Occupation d'archives" data-ar="حجم الأرشيف المسجل">Occupation d'archives</span>
+                  <span id="statArchiveCount">0</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill fill-orange" id="barArchive" style="width:0%"></div></div>
+              </div>
+            </div>
+
+            <div class="analytics-card">
+              <div class="analytics-title">
+                <span data-fr="Alertes & Tâches à venir" data-ar="تنبيهات الأعمال القادمة والمجدولة">Alertes & Tâches à venir</span>
+                <span style="color:#e47c18;">🔔</span>
+              </div>
+              <div id="smartAlertsContainer">
+                <!-- Alerts rendered via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Col -->
+          <div>
+            <div class="analytics-card">
+              <div class="analytics-title">
+                <span data-fr="Activité Récente (Journal)" data-ar="آخر الأنشطة المسجلة">Activité Récente</span>
+                <span>⏱️</span>
+              </div>
+              <div class="timeline" id="smartTimelineContainer">
+                <!-- Timeline rendered via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- JOURNAL PANEL -->
+      <section class="panel-section" id="journalPanel">
+        <div class="add-form" style="grid-template-columns: 1fr 2fr 1fr auto;">
+          <select id="jType"><option value="Réunion">Réunion</option><option value="Visite">Visite</option><option value="Courrier">Courrier</option></select>
+          <input id="jSubject" placeholder="Objet / Activité">
+          <input type="date" id="jDate">
+          <button class="btn primary" onclick="addJournal()" data-fr="+ Enregistrer" data-ar="+ تسجيل">+ Enregistrer</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Type</th><th>Activité / Objet</th></tr></thead>
+            <tbody id="journalBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TASKS PANEL -->
+      <section class="panel-section" id="tasksPanel">
+        <div class="add-form" style="grid-template-columns: 2fr 1fr 1fr 1fr auto;">
+          <input id="taskTitle" placeholder="Intitulé de la tâche (ex: Préparer le rapport)">
+          <input id="taskResp" placeholder="Responsable">
+          <input type="date" id="taskDate">
+          <select id="taskStatus"><option value="En cours">En cours</option><option value="Terminée">Terminée</option></select>
+          <button class="btn primary" onclick="addTask()" data-fr="+ Ajouter" data-ar="+ إضافة">+ Ajouter</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tâche</th><th>Responsable</th><th>Date limite</th><th>État</th><th>Action</th></tr></thead>
+            <tbody id="taskBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VISITORS PANEL -->
+      <section class="panel-section" id="visitorsPanel">
+        <div class="add-form" style="grid-template-columns: 1.5fr 1.5fr 1fr 1fr auto;">
+          <input id="vName" placeholder="Nom du visiteur">
+          <input id="vReason" placeholder="Motif de la visite">
+          <input type="time" id="vTime">
+          <select id="vStatus"><option value="Présent">Présent</option><option value="Sorti">Sorti</option></select>
+          <button class="btn primary" onclick="addVisitor()" data-fr="+ Enregistrer" data-ar="+ تسجيل">+ Enregistrer</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Visiteur</th><th>Motif</th><th>Heure d'entrée</th><th>État</th></tr></thead>
+            <tbody id="visitorBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+/* --- SYSTEM STATE & DATA --- */
+let currentLang = "fr";
+
+// Arrays for basic modules
+let journalData = [];
+let taskData = [];
+let visitorData = [];
+
+// Arrays for the new Archive System
+// structure: { id: string (4 digits), name: string, date: string, files: array }
+let archiveBoxes = [
+  { id: "1024", name: "Dossiers RH 2026", date: "2026-10-08", files: [] },
+  { id: "8590", name: "Contrats Fournisseurs", date: "2026-10-08", files: [] }
+];
+let currentOpenBoxId = null;
+
+/* --- UI TRANSLATION & NAVIGATION --- */
+function updateDate() {
+  const now = new Date();
+  const dateEl = document.getElementById("todayDate");
+  if(dateEl) {
+    dateEl.textContent = now.toLocaleDateString(currentLang === "ar" ? "ar-DZ" : "fr-DZ", {
+      weekday: "long", day: "2-digit", month: "long", year: "numeric"
+    });
+  }
+}
+
+function translateUI() {
+  document.documentElement.lang = currentLang === "ar" ? "ar" : "fr";
+  document.body.dir = currentLang === "ar" ? "rtl" : "ltr";
+  document.querySelectorAll("[data-fr][data-ar]").forEach(el => {
+    el.textContent = currentLang === "ar" ? el.dataset.ar : el.dataset.fr;
+  });
+  document.getElementById("langFr").classList.toggle("active", currentLang === "fr");
+  document.getElementById("langAr").classList.toggle("active", currentLang === "ar");
+  updateDate();
+  
+  // Re-render components with translated texts if needed
+  renderArchiveBoxes();
+  renderSmartDashboard();
+  renderTasks();
+  renderJournal();
+  renderVisitors();
+}
+
+document.getElementById("langToggle").addEventListener("click", () => {
+  currentLang = currentLang === "fr" ? "ar" : "fr";
+  translateUI();
+});
+
+function showSection(section) {
+  // Hide all panels
+  document.querySelectorAll(".workspace > main > .panel-section").forEach(sec => sec.style.display = "none");
+  
+  // Show target panel
+  const target = document.getElementById(section + "Panel");
+  if (target) target.style.display = "block";
+
+  // Handle sidebar menus
+  document.querySelectorAll(".submenu-group").forEach(menu => menu.style.display = "none");
+  const targetMenu = document.getElementById("menu-" + section);
+  if (targetMenu) {
+    targetMenu.style.display = "block";
+  } else {
+    document.getElementById("menu-home").style.display = "block";
+  }
+
+  // Update active states
+  document.querySelectorAll('.mainnav button').forEach(b => b.classList.toggle('active', b.dataset.view === section));
+  document.querySelectorAll('.menu-item').forEach(b => {
+    if (b.dataset.section) b.classList.toggle('active', b.dataset.section === section);
+  });
+  
+  // Update section title
+  const activeBtn = document.querySelector(`.mainnav button[data-view="${section}"]`);
+  if(activeBtn) document.getElementById("sectionTitle").textContent = activeBtn.textContent;
+
+  // Trigger specialized renders
+  if(section === 'archive') { document.getElementById("archiveInsideView").style.display = "none"; document.getElementById("archiveBoxesView").style.display = "block"; renderArchiveBoxes(); }
+  if(section === 'smart') renderSmartDashboard();
+}
+
+document.querySelectorAll('.menu-item, .dash-card, .mainnav button').forEach(el => {
+  el.addEventListener('click', () => {
+    const sec = el.dataset.section || el.dataset.view;
+    if (sec) showSection(sec);
+  });
+});
+
+/* --- ARCHIVE SYSTEM LOGIC (NEW) --- */
+function generate4DigitCode() {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+function createNewBox() {
+  const name = prompt(currentLang === "ar" ? "أدخل اسم علبة الأرشيف الجديدة:" : "Saisissez le nom de la nouvelle boîte :");
+  if(!name) return;
+  
+  let code;
+  // Ensure unique code
+  do { code = generate4DigitCode(); } while (archiveBoxes.find(b => b.id === code));
+  
+  archiveBoxes.unshift({
+    id: code,
+    name: name,
+    date: new Date().toISOString().slice(0,10),
+    files: []
+  });
+  
+  showSection('archive');
+  renderArchiveBoxes();
+}
+
+function renderArchiveBoxes() {
+  const container = document.getElementById("archiveGridContainer");
+  const searchTxt = document.getElementById("searchArchiveInput").value.toLowerCase().trim();
+  
+  const filtered = archiveBoxes.filter(b => 
+    b.id.includes(searchTxt) || b.name.toLowerCase().includes(searchTxt)
+  );
+
+  if(filtered.length === 0) {
+    container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:30px; color:#777;">${currentLang === "ar" ? "لا توجد علب مطابقة للبحث." : "Aucune boîte trouvée."}</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(b => `
+    <div class="archive-box" onclick="openArchiveBox('${b.id}')">
+      <div class="box-code">🗂️ #${b.id} <span>CODE</span></div>
+      <div class="box-title">${b.name}</div>
+      <div class="box-meta">
+        <span>📅 ${b.date}</span>
+        <span><b>${b.files.length}</b> ${currentLang === "ar" ? "ملفات" : "fichiers"}</span>
+      </div>
+    </div>
+  `).join("");
+}
+
+function openArchiveBox(id) {
+  currentOpenBoxId = id;
+  const box = archiveBoxes.find(b => b.id === id);
+  if(!box) return;
+  
+  document.getElementById("archiveBoxesView").style.display = "none";
+  document.getElementById("archiveInsideView").style.display = "block";
+  
+  document.getElementById("currentBoxCodeDisplay").textContent = `Archive #${box.id}`;
+  document.getElementById("currentBoxNameDisplay").textContent = box.name;
+  
+  renderBoxFiles();
+}
+
+function closeBoxView() {
+  currentOpenBoxId = null;
+  document.getElementById("archiveInsideView").style.display = "none";
+  document.getElementById("archiveBoxesView").style.display = "block";
+  renderArchiveBoxes();
+}
+
+function addFileToBox() {
+  if(!currentOpenBoxId) return;
+  const box = archiveBoxes.find(b => b.id === currentOpenBoxId);
+  
+  const name = document.getElementById("fName").value.trim();
+  const ref = document.getElementById("fRef").value.trim();
+  const desc = document.getElementById("fDesc").value.trim();
+  
+  if(!name) { alert(currentLang === "ar" ? "يرجى كتابة اسم الملف." : "Veuillez saisir le nom du fichier."); return; }
+  
+  box.files.unshift({
+    name: name,
+    ref: ref || "N/A",
+    desc: desc || "-",
+    date: new Date().toISOString().slice(0,10)
+  });
+  
+  document.getElementById("fName").value = "";
+  document.getElementById("fRef").value = "";
+  document.getElementById("fDesc").value = "";
+  
+  renderBoxFiles();
+}
+
+function renderBoxFiles() {
+  const tbody = document.getElementById("boxFilesBody");
+  const box = archiveBoxes.find(b => b.id === currentOpenBoxId);
+  if(!box || box.files.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-row">${currentLang === "ar" ? "هذه العلبة فارغة. أضف ملفات جديدة." : "Cette boîte est vide. Ajoutez des fichiers."}</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = box.files.map((f, i) => `
+    <tr>
+      <td style="font-weight:bold; color:#173f74;">${f.name}</td>
+      <td><span class="badge normal">${f.ref}</span></td>
+      <td>${f.desc}</td>
+      <td>${f.date}</td>
+      <td><button class="action-btn" onclick="deleteFileFromBox(${i})">${currentLang === "ar" ? "حذف" : "Supprimer"}</button></td>
+    </tr>
+  `).join("");
+}
+
+function deleteFileFromBox(index) {
+  if(!currentOpenBoxId) return;
+  const box = archiveBoxes.find(b => b.id === currentOpenBoxId);
+  if(confirm(currentLang === "ar" ? "هل أنت متأكد من حذف هذا الملف؟" : "Supprimer ce fichier ?")) {
+    box.files.splice(index, 1);
+    renderBoxFiles();
+  }
+}
+
+
+/* --- ADVANCED SMART DASHBOARD LOGIC (NEW) --- */
+function renderSmartDashboard() {
+  // 1. Calculations
+  const totalTasks = taskData.length;
+  const doneTasks = taskData.filter(t => t.status === "Terminée" || t.status === "منتهية").length;
+  let taskPerc = totalTasks === 0 ? 0 : Math.round((doneTasks / totalTasks) * 100);
+  
+  let totalFiles = 0;
+  archiveBoxes.forEach(b => totalFiles += b.files.length);
+  // arbitrary logic: max capacity visually set to 50 for demo
+  let archivePerc = Math.min(Math.round((totalFiles / 50) * 100), 100);
+
+  // Update UI Bars
+  document.getElementById("statTaskPerc").textContent = taskPerc + "%";
+  document.getElementById("barTask").style.width = taskPerc + "%";
+  
+  document.getElementById("statArchiveCount").textContent = totalFiles + " Fichiers";
+  document.getElementById("barArchive").style.width = archivePerc + "%";
+
+  // 2. Upcoming Tasks Alerts (المهام القادمة)
+  const alertsContainer = document.getElementById("smartAlertsContainer");
+  const pendingTasks = taskData.filter(t => t.status !== "Terminée" && t.status !== "منتهية").slice(0,3);
+  
+  if(pendingTasks.length === 0) {
+    alertsContainer.innerHTML = `<div style="color:#2ea44f; font-weight:bold; padding:10px;">${currentLang === "ar" ? "✔️ لا توجد مهام معلقة! العمل ممتاز." : "✔️ Aucune tâche en attente ! Excellent travail."}</div>`;
+  } else {
+    alertsContainer.innerHTML = pendingTasks.map(t => `
+      <div class="alert-box">
+        <div class="alert-title">⏳ ${currentLang === "ar" ? "مهمة مجدولة" : "Tâche planifiée"}: ${t.date}</div>
+        <div class="alert-desc">${t.title} - <b>${t.resp}</b></div>
+      </div>
+    `).join("");
+  }
+
+  // 3. Recent Timeline (الأنشطة الأخيرة)
+  const timelineContainer = document.getElementById("smartTimelineContainer");
+  const recentJournal = journalData.slice(0, 4);
+  
+  if(recentJournal.length === 0) {
+    timelineContainer.innerHTML = `<div class="empty-row" style="padding:10px!important;">${currentLang === "ar" ? "لا توجد أنشطة مسجلة بعد." : "Aucune activité récente."}</div>`;
+  } else {
+    timelineContainer.innerHTML = recentJournal.map(j => `
+      <div class="timeline-item">
+        <div class="timeline-date">${j.date} | ${j.type}</div>
+        <div class="timeline-content">${j.subject}</div>
+      </div>
+    `).join("");
+  }
+}
+
+/* --- BASIC MODULES (Journal, Tasks, Visitors) --- */
+function addJournal() {
+  const subject = document.getElementById("jSubject").value.trim();
+  if(!subject) return;
+  journalData.unshift({
+    type: document.getElementById("jType").value,
+    subject: subject,
+    date: document.getElementById("jDate").value || new Date().toISOString().slice(0,10)
+  });
+  document.getElementById("jSubject").value = "";
+  renderJournal();
+}
+function renderJournal() {
+  const tbody = document.getElementById("journalBody");
+  if(!journalData.length) { tbody.innerHTML = `<tr><td colspan="3" class="empty-row">-</td></tr>`; return; }
+  tbody.innerHTML = journalData.map(j => `<tr><td>${j.date}</td><td><span class="badge normal">${j.type}</span></td><td>${j.subject}</td></tr>`).join("");
+}
+
+function addTask() {
+  const title = document.getElementById("taskTitle").value.trim();
+  if(!title) return;
+  taskData.unshift({
+    title: title,
+    resp: document.getElementById("taskResp").value,
+    date: document.getElementById("taskDate").value || new Date().toISOString().slice(0,10),
+    status: document.getElementById("taskStatus").value
+  });
+  document.getElementById("taskTitle").value = "";
+  renderTasks();
+}
+function renderTasks() {
+  const tbody = document.getElementById("taskBody");
+  if(!taskData.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty-row">-</td></tr>`; return; }
+  tbody.innerHTML = taskData.map((t,i) => `
+    <tr>
+      <td style="font-weight:bold;">${t.title}</td><td>${t.resp}</td><td>${t.date}</td>
+      <td><span class="badge ${t.status === 'Terminée' ? 'normal' : 'high'}">${t.status}</span></td>
+      <td><button class="action-btn" onclick="taskData.splice(${i},1);renderTasks()">X</button></td>
+    </tr>
+  `).join("");
+}
+
+function addVisitor() {
+  const name = document.getElementById("vName").value.trim();
+  if(!name) return;
+  visitorData.unshift({
+    name: name,
+    reason: document.getElementById("vReason").value,
+    time: document.getElementById("vTime").value || "08:00",
+    status: document.getElementById("vStatus").value
+  });
+  document.getElementById("vName").value = "";
+  renderVisitors();
+}
+function renderVisitors() {
+  const tbody = document.getElementById("visitorBody");
+  if(!visitorData.length) { tbody.innerHTML = `<tr><td colspan="4" class="empty-row">-</td></tr>`; return; }
+  tbody.innerHTML = visitorData.map(v => `<tr><td style="font-weight:bold;">${v.name}</td><td>${v.reason}</td><td>${v.time}</td><td><span class="badge normal">${v.status}</span></td></tr>`).join("");
+}
+
+// Init UI
+document.getElementById("jDate").value = new Date().toISOString().slice(0,10);
+document.getElementById("taskDate").value = new Date().toISOString().slice(0,10);
+translateUI();
+
+
+// PWA: install prompt and service-worker registration
+let deferredInstallPrompt = null;
+const installButton = document.getElementById("installAppBtn");
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+});
+if (installButton) {
+  installButton.addEventListener("click", async () => {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+    } else if (!window.matchMedia("(display-mode: standalone)").matches) {
+      alert(currentLang === "ar"
+        ? "لتثبيت التطبيق: افتح قائمة المتصفح ثم اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»."
+        : "Pour installer l’application : ouvrez le menu du navigateur puis choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil ».");
+    }
+  });
+}
+window.addEventListener("appinstalled", () => {
+  if (installButton) installButton.textContent = currentLang === "ar" ? "التطبيق مثبت" : "Application installée";
+});
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch((error) => {
+      console.error("Service worker registration failed:", error);
+    });
+  });
+}
+
+</script>
+</body>
+</html>
