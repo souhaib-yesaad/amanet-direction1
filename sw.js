@@ -1,4 +1,4 @@
-const CACHE_NAME = "amanet-direction-pwa-v2";
+const CACHE_NAME = "amanet-direction-pwa-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
