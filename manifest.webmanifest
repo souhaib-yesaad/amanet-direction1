@@ -1,0 +1,22 @@
+{
+  "id": "./",
+  "name": "Amanet de Direction",
+  "short_name": "Amanet",
+  "description": "Système intégré de gestion de l’Amanet de Direction",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f7f7",
+  "theme_color": "#173f74",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
