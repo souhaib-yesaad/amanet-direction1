@@ -1,10 +1,10 @@
 {
   "id": "./",
-  "name": "Amanet de Direction",
-  "short_name": "Amanet",
-  "description": "Système intégré de gestion de l’Amanet de Direction",
-  "lang": "fr",
-  "dir": "ltr",
+  "name": "أمانة المديرية | Amanet de Direction",
+  "short_name": "أمانة المديرية",
+  "description": "برنامج أمانة المديرية لتسيير الأعمال الإدارية",
+  "lang": "ar",
+  "dir": "rtl",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -16,7 +16,13 @@
       "src": "./icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ]
 }
